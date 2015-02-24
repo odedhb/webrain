@@ -2,14 +2,14 @@ from google.appengine.ext import ndb
 import webapp2
 import re
 
+# Build a programmatic search engine, gets a string, if it doesn't fit a template, it asks for an answer or a link.
+# Then parses the link to the template for matching. Use Facebook excerpt for search results.
+
 
 class Item(ndb.Model):
     url_template = ndb.StringProperty()
-    # url_computed = ndb.ComputedProperty()
-    query_template = ndb.StringProperty()
-    # excerpt = ndb.StringProperty()
-    image = ndb.StringProperty()
-    # clicks = ndb.IntegerProperty()
+    query_regex = ndb.StringProperty()
+    clicks = ndb.IntegerProperty()
     updated = ndb.DateTimeProperty(auto_now_add=True)
 
 
@@ -17,21 +17,23 @@ class Search(webapp2.RequestHandler):
     def get(self):
         query = self.request.get("q")
 
-        item = Item(url_template="https://www.facebook.com/search/str/mike/keywords_top")
-        item.query_template = "flights from (?P<source>.+) to (?P<destination>.+)"
-        item.image = "https://cdn2.vox-cdn.com/uploads/chorus_asset/file/3397376/tbf_014_gates_education_thumb_raw.0.jpg"
+        item = Item(url_template="https://www.facebook.com/search/str/{person}/keywords_top")
+        item.query_regex = "search (?P<person>.+) on facebook"
         item.clicks = 3
         all_items = [item]
 
         matching_items = []
 
         for item in all_items:
-            if re.match(item.query_template, query):
+            if re.match(item.query_regex, query):
                 matching_items.append(item)
 
         html = SEARCH_BOX
         for item in matching_items:
-            html = html + "<br><a href='" + item.url_template + "'>" + item.query_template + "</a><br>"
+            matches = re.match(item.query_regex, query)
+            group_dict = matches.groupdict()
+            computed_url = item.url_template.format(**group_dict)
+            html = html + "<br><a href='" + computed_url + "'>" + computed_url + "</a><br>"
 
         html += ADD_LINK
         self.response.write(html)
