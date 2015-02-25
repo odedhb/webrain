@@ -16,11 +16,16 @@ class Item(ndb.Model):
 class Search(webapp2.RequestHandler):
     def get(self):
         query = self.request.get("q")
+        all_items = Item.query().fetch()
 
-        item = Item(url_template="https://www.facebook.com/search/str/{person}/keywords_top")
-        item.query_regex = "search (?P<person>.+) on facebook"
-        item.clicks = 3
-        all_items = [item]
+        if not all_items:
+            item = Item(url_template="https://www.facebook.com/search/str/{person}/keywords_top")
+            item.query_regex = "search (?P<person>.+) on facebook"
+            item.clicks = 3
+            all_items = [item]
+
+        all_items.append(Item(url_template="https://www.google.co.il/search?q={query}", query_regex="(?P<query>.+)"))
+        all_items.append(Item(url_template="http://www.google.com/search?btnI&q={query}", query_regex="(?P<query>.+)"))
 
         matching_items = []
 
@@ -44,17 +49,36 @@ class MainHandler(webapp2.RequestHandler):
         self.response.write(SEARCH_BOX)
 
 
+class Add(webapp2.RequestHandler):
+    def get(self):
+        query = self.request.get("q")
+        url = self.request.get("url")
+        Item(url_template=url, query_regex=query).put()
+        self.response.write("Added!")
+
+
 SEARCH_BOX = """
 <form action="../search">
-    <input type="text" name="q">
+    <input type="text"  size="80" name="q">
     <input type="submit" value="go">
 </form>
         """
-
 ADD_LINK = """
-<br><a href=''>Add +</a>
+<form action="../add">
+    </br></br></br></br></br><h3>Add your own result:</h3>
+
+    Query with <a href='https://docs.python.org/2/library/re.html'>regex</a> parameter(s):</br>
+    <input type="text" size="80" name="q"></br>
+    e.g. "search (?P&lt;person&gt;.+) on facebook"</br></br>
+
+    Url with matching parameter(s):</br>
+    <input type="text" name="url" size="80" ></br>
+    e.g. https://www.facebook.com/search/str/{person}/keywords_top</br></br>
+    <input type="submit" value="add">
+</form>
         """
 
 app = webapp2.WSGIApplication([('/', MainHandler),
+                               ('/add', Add),
                                ('/search', Search)]
                               , debug=True)
