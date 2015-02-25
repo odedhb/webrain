@@ -5,6 +5,8 @@ import re
 # Build a programmatic search engine, gets a string, if it doesn't fit a template, it asks for an answer or a link.
 # Then parses the link to the template for matching. Use Facebook excerpt for search results.
 
+# Match the URL and the query string. Show matches with check boxes on their sides.
+# Every checked box becomes a regex group.
 
 class Item(ndb.Model):
     url_template = ndb.StringProperty()
