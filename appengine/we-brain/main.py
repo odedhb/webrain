@@ -37,7 +37,7 @@ class Search(webapp2.RequestHandler):
 
         html = SEARCH_BOX
         for item in matching_items:
-            matches = re.match(item.query_regex, query)
+            matches = re.match(item.query_regex.encode('utf-8'), query.encode('utf-8'))
             group_dict = matches.groupdict()
             computed_url = item.url_template.format(**group_dict)
             html = html + "<br><a href='" + computed_url + "'>" + computed_url + "</a><br>"
