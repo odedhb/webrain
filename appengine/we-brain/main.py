@@ -35,7 +35,7 @@ class Search(webapp2.RequestHandler):
             if re.match(item.query_regex, query):
                 matching_items.append(item)
 
-        html = SEARCH_BOX
+        html = search_box(query)
         for item in matching_items:
             matches = re.match(item.query_regex.encode('utf-8'), query.encode('utf-8'))
             group_dict = matches.groupdict()
@@ -48,7 +48,7 @@ class Search(webapp2.RequestHandler):
 
 class MainHandler(webapp2.RequestHandler):
     def get(self):
-        self.response.write(SEARCH_BOX)
+        self.response.write(search_box())
 
 
 class Add(webapp2.RequestHandler):
@@ -59,12 +59,15 @@ class Add(webapp2.RequestHandler):
         self.response.write("Added!")
 
 
-SEARCH_BOX = """
+def search_box(term=""):
+    return """
 <form action="../search">
-    <input type="text"  size="80" name="q">
+    <input type="text"  size="80" autofocus onfocus="this.value = this.value;" name="q" value='""" + term + """'>
     <input type="submit" value="go">
 </form>
         """
+
+
 ADD_LINK = """
 <form action="../add">
     </br></br></br></br></br><h3>Add your own result:</h3>
